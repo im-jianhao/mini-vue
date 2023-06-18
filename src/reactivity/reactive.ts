@@ -1,4 +1,4 @@
-import { track, trigger } from "./effect";
+import { track, trigger } from './effect';
 
 export const reactive = (raw: any) => {
   return new Proxy(raw, {

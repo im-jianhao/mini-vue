@@ -1,5 +1,11 @@
+import { extend } from "../shared";
+
 class ReactiveEffect {
-  private _fn: any;
+  private readonly _fn: any;
+  scheduler: Function | undefined;
+  deps: any[] = [];
+  active = true;
+  onStop: any;
 
   constructor(fn) {
     this._fn = fn;
@@ -9,7 +15,24 @@ class ReactiveEffect {
     activeEffect = this;
     return this._fn();
   }
+
+  stop() {
+    if (this.active) {
+      cleanupEffect(this);
+      if (this.onStop) {
+        this.onStop();
+      }
+      this.active = false;
+    }
+  }
 }
+
+// 清空当前effect
+const cleanupEffect = (effect) => {
+  effect.deps.forEach((dep: Set<any>) => {
+    dep.delete(effect);
+  });
+};
 
 /**
  * targetMap里面收集keyMap
@@ -28,23 +51,38 @@ export const track = (target, key) => {
     dep = new Set();
     depsMap.set(key, dep);
   }
-  dep.add(activeEffect);
-};
 
+  if (!activeEffect) return;
+
+  // TODO 需要加一个去重的判断，Set中存在effect的时候不需要再一次收集
+  dep.add(activeEffect);
+  activeEffect.deps.push(dep);
+};
 
 // 触发依赖
 export const trigger = (target, key) => {
   let depsMap = targetMap.get(target);
   let dep = depsMap.get(key);
   for (const effect of dep) {
-    effect.run();
+    if (effect.scheduler) {
+      effect.scheduler();
+    } else {
+      effect.run();
+    }
   }
 };
 
 let activeEffect;
-export const effect = (fn) => {
+export const effect = (fn, options: any = {}) => {
   const _effect = new ReactiveEffect(fn);
+  extend(_effect, options);
   _effect.run();
 
-  return _effect.run.bind(_effect)
+  const runner: any = _effect.run.bind(_effect);
+  runner.effect = _effect;
+  return runner;
+};
+
+export const stop = (runner) => {
+  runner.effect.stop();
 };

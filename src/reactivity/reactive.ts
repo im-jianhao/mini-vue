@@ -1,4 +1,4 @@
-import { track, trigger } from './effect';
+import { track, trigger } from "./effect";
 
 export const reactive = (raw: any) => {
   return new Proxy(raw, {
@@ -13,6 +13,19 @@ export const reactive = (raw: any) => {
       // 触发依赖
       trigger(target, key);
       return res;
+    },
+  });
+};
+
+export const readonly = (raw: any) => {
+  return new Proxy(raw, {
+    get(target, key) {
+      const res = Reflect.get(target, key);
+
+      return res;
+    },
+    set(target, key, value) {
+      return true;
     },
   });
 };

@@ -1,4 +1,5 @@
 import { track, trigger } from "./effect";
+import { ReactiveFlags } from "./reactive";
 
 // 创建Getter
 const createGetter = (isReadonly = false) => {
@@ -8,6 +9,13 @@ const createGetter = (isReadonly = false) => {
       // 收集依赖
       track(target, key);
     }
+    if (key === ReactiveFlags.IS_REACTIVE) {
+      return !isReadonly;
+    }
+    if (key === ReactiveFlags.IS_READONLY) {
+      return isReadonly;
+    }
+
     return res;
   };
 };
@@ -25,7 +33,7 @@ const createSetter = () => {
 // 缓存机制，只初始化一次 get set
 const get = createGetter();
 const set = createSetter();
-const readonlyGet = createGetter();
+const readonlyGet = createGetter(true);
 
 export const mutableHandlers = {
   get,

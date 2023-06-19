@@ -1,4 +1,4 @@
-import { readonly } from "../reactive";
+import { isReadonly, readonly } from "../reactive";
 
 /**
  * readonly 数据不可被set
@@ -11,6 +11,9 @@ describe("readonly", () => {
     expect(wrapped).not.toBe(original);
 
     expect(wrapped.foo).toBe(1);
+
+    expect(isReadonly(wrapped)).toBe(true);
+    expect(isReadonly(original)).toBe(false);
   });
 
   it("warn when call set", () => {

@@ -1,5 +1,8 @@
 import { extend } from "../shared";
 
+let activeEffect;
+let shouldTrack;
+
 class ReactiveEffect {
   private readonly _fn: any;
   scheduler: Function | undefined;
@@ -12,8 +15,17 @@ class ReactiveEffect {
   }
 
   run() {
+    if (!this.active) {
+      return this._fn();
+    }
+    shouldTrack = true;
     activeEffect = this;
-    return this._fn();
+
+    const result = this._fn();
+
+    shouldTrack = false;
+
+    return result;
   }
 
   stop() {
@@ -53,6 +65,7 @@ export const track = (target, key) => {
   }
 
   if (!activeEffect) return;
+  if (!shouldTrack) return;
 
   // TODO 需要加一个去重的判断，Set中存在effect的时候不需要再一次收集
   dep.add(activeEffect);
@@ -72,7 +85,6 @@ export const trigger = (target, key) => {
   }
 };
 
-let activeEffect;
 export const effect = (fn, options: any = {}) => {
   const _effect = new ReactiveEffect(fn);
   extend(_effect, options);

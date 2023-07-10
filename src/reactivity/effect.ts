@@ -44,6 +44,7 @@ const cleanupEffect = (effect) => {
   effect.deps.forEach((dep: Set<any>) => {
     dep.delete(effect);
   });
+  effect.deps.length = 0;
 };
 
 /**
@@ -53,6 +54,8 @@ const cleanupEffect = (effect) => {
 const targetMap = new Map();
 // 收集依赖
 export const track = (target, key) => {
+  if (!isTracking()) return;
+
   let depsMap = targetMap.get(target);
   if (!depsMap) {
     depsMap = new Map();
@@ -64,12 +67,15 @@ export const track = (target, key) => {
     depsMap.set(key, dep);
   }
 
-  if (!activeEffect) return;
-  if (!shouldTrack) return;
+  // 去重
+  if (dep.has(activeEffect)) return;
 
-  // TODO 需要加一个去重的判断，Set中存在effect的时候不需要再一次收集
   dep.add(activeEffect);
   activeEffect.deps.push(dep);
+};
+
+const isTracking = () => {
+  return shouldTrack && activeEffect !== undefined;
 };
 
 // 触发依赖

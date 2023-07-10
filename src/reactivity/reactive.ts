@@ -32,3 +32,7 @@ export const readonly = (raw: any) => {
 export const isReadonly = (row: any) => {
   return !!row[ReactiveFlags.IS_READONLY];
 };
+
+export const isProxy = (row: any) => {
+  return isReactive(row) || isReadonly(row);
+};

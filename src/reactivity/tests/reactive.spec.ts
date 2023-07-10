@@ -13,6 +13,7 @@ describe("reactive", () => {
 
     expect(isReactive(original)).toBe(false);
   });
+
   test("nested reactive", () => {
     const original = {
       nested: {

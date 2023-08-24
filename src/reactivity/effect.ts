@@ -3,15 +3,16 @@ import { extend } from "../shared";
 let activeEffect;
 let shouldTrack;
 
-class ReactiveEffect {
+export class ReactiveEffect {
   private readonly _fn: any;
   scheduler: Function | undefined;
   deps: any[] = [];
   active = true;
   onStop: any;
 
-  constructor(fn) {
+  constructor(fn, scheduler?: Function) {
     this._fn = fn;
+    this.scheduler = scheduler;
   }
 
   run() {
